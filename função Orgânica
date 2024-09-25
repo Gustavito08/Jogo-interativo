@@ -1,0 +1,129 @@
+Web Vpython 3.2
+from vpython import *
+import random
+
+# Função para criar um fundo com cor sólida (preto)
+def criar_fundo():
+    box(pos=vector(0, 0, -1), size=vector(20, 15, 0.1), color=color.black)
+
+# Lista de funções orgânicas (nome, fórmula geral)
+funcoes_organicas = [
+    ("Hidrocarboneto", "CH₃-CH₂-CH₃"),
+    ("Álcool", "CH₃-CH₂-OH"),
+    ("Fenol", "C₆H₅-OH"),
+    ("Éter", "CH₃-O-CH₃"),
+    ("Aldeído", "CH₃-CHO"),
+    ("Cetona", "CH₃-CO-CH₃"),
+    ("Ácido Carboxílico", "CH₃-COOH"),
+    ("Éster", "CH₃-COO-CH₃"),
+    ("Amida", "CH₃-CONH₂"),
+    ("Amina", "CH₃-NH₂")
+]
+
+# Variáveis globais
+pontuacao = 0
+estrutura_correta = ""
+tempo_maximo = 15  # Tempo aumentado para 15 segundos
+tempo_restante = tempo_maximo
+cronometro_ativo = False
+botoes = []  # Lista de botões criados
+
+# Função para iniciar o quiz
+def iniciar_quiz():
+    global estrutura_correta, tempo_restante, cronometro_ativo
+    funcao_organica = random.choice(funcoes_organicas)
+    nome, estrutura_correta = funcao_organica
+
+    # Atualiza a pergunta
+    pergunta.text = f"Qual é a estrutura da função {nome}?"
+    pergunta.opacity = 1
+
+    # Gera respostas aleatórias
+    opcoes = [estrutura_correta]
+    while len(opcoes) < 4:
+        estrutura_aleatoria = random.choice(funcoes_organicas)[1]
+        if estrutura_aleatoria not in opcoes:
+            opcoes.append(estrutura_aleatoria)
+
+    random.shuffle(opcoes)
+
+    # Atualiza os textos dos botões
+    for i in range(4):
+        botoes[i].label.text = opcoes[i]
+
+    resultado.text = ""  # Reseta o resultado
+    tempo_restante = tempo_maximo
+    contagem_regressiva.text = f"Tempo: {tempo_restante}s"
+    cronometro_ativo = True  # Ativa o cronômetro
+
+# Função para atualizar o tempo restante
+def atualizar_tempo():
+    global tempo_restante, cronometro_ativo
+    while cronometro_ativo:
+        rate(1)
+        tempo_restante -= 1
+        contagem_regressiva.text = f"Tempo: {tempo_restante}s"
+        if tempo_restante <= 0:
+            cronometro_ativo = False
+            resultado.text = "Tempo esgotado!"
+            resultado.color = color.red
+            iniciar_quiz()
+
+# Função para verificar a resposta
+def verificar_resposta(botao):
+    global pontuacao, cronometro_ativo
+    cronometro_ativo = False
+    if botao.label.text == estrutura_correta:
+        resultado.text = "Correto!"
+        resultado.color = color.green
+        pontuacao += 1
+    else:
+        resultado.text = f"Errado! A resposta correta era {estrutura_correta}."
+        resultado.color = color.red
+
+    pontuacao_text.text = f"Pontuação: {pontuacao}"
+    iniciar_quiz()
+
+# Função de clique do botão
+def clique_botao(evt):
+    for botao in botoes:
+        if evt.pos.x >= botao.pos.x - 0.55 and evt.pos.x <= botao.pos.x + 0.55 and evt.pos.y >= botao.pos.y - 0.25 and evt.pos.y <= botao.pos.y + 0.25:
+            verificar_resposta(botao)
+
+# Configura a interface gráfica
+scene.title = "Quiz de Funções Orgânicas"
+scene.background = color.black  # Fundo preto
+scene.bind('click', clique_botao)
+
+# Cria o fundo sólido
+criar_fundo()
+
+# Título do jogo
+titulo = label(pos=vector(0, 8, 0), text="Jogo de Funções Orgânicas", color=color.purple, height=30, box=False)
+
+# Mostra a pergunta
+pergunta = label(pos=vector(0, 5, 0), text="Qual é a estrutura da função?", color=color.white, height=25, box=False)
+
+# Resultado
+resultado = label(pos=vector(0, 3, 0), text="", color=color.red, height=25, box=False)
+
+# Pontuação
+pontuacao_text = label(pos=vector(0, 2, 0), text="Pontuação: 0", color=color.white, height=20, box=False)
+
+# Contagem regressiva
+contagem_regressiva = label(pos=vector(0, 1, 0), text=f"Tempo: {tempo_maximo}s", color=color.white, height=20, box=False)
+
+# Criando botões com espaçamento adequado e maior tamanho
+botoes_posicoes = [(-3.5, -2), (3.5, -2), (-3.5, -4), (3.5, -4)]
+for pos in botoes_posicoes:
+    botao = box(pos=vector(pos[0], pos[1], 0), size=vector(6, 1.5, 0.05), color=color.white, opacity=0.7)
+    botoes.append(botao)
+
+# Rótulos visíveis para os botões, ajustados para estruturas químicas maiores
+for botao in botoes:
+    label_botao = label(pos=botao.pos, text="", color=color.black, height=20, box=False)
+    botao.label = label_botao
+
+# Inicia o quiz e a contagem de tempo
+iniciar_quiz()
+atualizar_tempo()
